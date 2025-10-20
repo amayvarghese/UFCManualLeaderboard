@@ -6,6 +6,7 @@ const scoreForm = document.getElementById('scoreForm');
 const messageDiv = document.getElementById('message');
 const leaderboardDiv = document.getElementById('leaderboard');
 const refreshBtn = document.getElementById('refreshBtn');
+const resetBtn = document.getElementById('resetBtn');
 
 // Show message to user
 function showMessage(text, type = 'success') {
@@ -91,6 +92,59 @@ async function loadLeaderboard() {
     }
 }
 
+// Reset all leaderboard data
+async function resetLeaderboard() {
+    // Show confirmation dialog
+    const confirmed = confirm('⚠️ WARNING: This will permanently delete ALL leaderboard data!\n\nAre you absolutely sure you want to reset the leaderboard?\n\nThis action cannot be undone.');
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    // Show second confirmation for extra safety
+    const doubleConfirmed = confirm('🚨 FINAL WARNING: All scores and data will be permanently deleted!\n\nType "RESET" in the next dialog to confirm.');
+    
+    if (!doubleConfirmed) {
+        return;
+    }
+    
+    // Final confirmation with text input
+    const resetText = prompt('Type "RESET" (in all caps) to confirm deletion of all leaderboard data:');
+    
+    if (resetText !== 'RESET') {
+        showMessage('Reset cancelled. Leaderboard data is safe.', 'error');
+        return;
+    }
+    
+    // Disable button and show loading
+    resetBtn.disabled = true;
+    resetBtn.textContent = 'Resetting...';
+    showMessage('Resetting leaderboard...', 'error');
+    
+    try {
+        // Delete all entries from the leaderboard
+        const { error } = await supabase
+            .from('Manual Leaderboard')
+            .delete()
+            .neq('id', 0); // This will delete all rows since no ID is 0
+        
+        if (error) throw error;
+        
+        showMessage('✅ Leaderboard has been reset successfully!', 'success');
+        
+        // Reload the leaderboard to show empty state
+        await loadLeaderboard();
+        
+    } catch (error) {
+        console.error('Error resetting leaderboard:', error);
+        showMessage(`❌ Error resetting leaderboard: ${error.message}`, 'error');
+    } finally {
+        // Re-enable button
+        resetBtn.disabled = false;
+        resetBtn.textContent = 'Reset All Data';
+    }
+}
+
 // Escape HTML to prevent XSS
 function escapeHtml(text) {
     const map = {
@@ -106,6 +160,7 @@ function escapeHtml(text) {
 // Event listeners
 scoreForm.addEventListener('submit', submitScore);
 refreshBtn.addEventListener('click', loadLeaderboard);
+resetBtn.addEventListener('click', resetLeaderboard);
 
 // Load leaderboard on page load
 loadLeaderboard();
