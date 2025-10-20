@@ -124,27 +124,25 @@ async function resetLeaderboard() {
     showMessage('Resetting leaderboard...', 'error');
     
     try {
-        // First, get all entries to delete them individually
-        const { data: allEntries, error: fetchError } = await supabase
+        // Try to delete all entries using a more direct approach
+        console.log('Attempting to delete all entries...');
+        
+        const { data: deletedData, error: deleteError } = await supabase
             .from('Manual Leaderboard')
-            .select('id');
+            .delete()
+            .neq('id', 0) // This should delete all rows
+            .select(); // Return deleted rows to confirm
         
-        if (fetchError) throw fetchError;
+        console.log('Delete result:', { deletedData, deleteError });
         
-        if (!allEntries || allEntries.length === 0) {
-            showMessage('✅ Leaderboard is already empty!', 'success');
-            await loadLeaderboard();
-            return;
-        }
-        
-        // Delete each entry individually
-        for (const entry of allEntries) {
-            const { error: deleteError } = await supabase
-                .from('Manual Leaderboard')
-                .delete()
-                .eq('id', entry.id);
+        if (deleteError) {
+            console.error('Delete error:', deleteError);
             
-            if (deleteError) throw deleteError;
+            // If Supabase client fails, try REST API directly
+            console.log('Trying REST API approach...');
+            await deleteViaRestAPI();
+        } else {
+            console.log('Successfully deleted entries:', deletedData);
         }
         
         showMessage('✅ Leaderboard has been reset successfully!', 'success');
@@ -159,6 +157,45 @@ async function resetLeaderboard() {
         // Re-enable button
         resetBtn.disabled = false;
         resetBtn.textContent = 'Reset All Data';
+    }
+}
+
+// Fallback function to delete via REST API
+async function deleteViaRestAPI() {
+    console.log('Using REST API to delete entries...');
+    
+    // First get all entries
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/Manual%20Leaderboard?select=id`, {
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Failed to fetch entries: ${response.statusText}`);
+    }
+    
+    const entries = await response.json();
+    console.log('Found entries to delete:', entries);
+    
+    // Delete each entry individually
+    for (const entry of entries) {
+        const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/Manual%20Leaderboard?id=eq.${entry.id}`, {
+            method: 'DELETE',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!deleteResponse.ok) {
+            console.error(`Failed to delete entry ${entry.id}:`, deleteResponse.statusText);
+        } else {
+            console.log(`Successfully deleted entry ${entry.id}`);
+        }
     }
 }
 
