@@ -96,25 +96,10 @@ async function loadLeaderboard() {
 async function resetLeaderboard() {
     console.log('Reset button clicked!');
     
-    // Show confirmation dialog
-    const confirmed = confirm('⚠️ WARNING: This will permanently delete ALL leaderboard data!\n\nAre you absolutely sure you want to reset the leaderboard?\n\nThis action cannot be undone.');
+    // Simple single confirmation
+    const confirmed = confirm('Reset all leaderboard data?');
     
     if (!confirmed) {
-        return;
-    }
-    
-    // Show second confirmation for extra safety
-    const doubleConfirmed = confirm('🚨 FINAL WARNING: All scores and data will be permanently deleted!\n\nType "RESET" in the next dialog to confirm.');
-    
-    if (!doubleConfirmed) {
-        return;
-    }
-    
-    // Final confirmation with text input
-    const resetText = prompt('Type "RESET" (in all caps) to confirm deletion of all leaderboard data:');
-    
-    if (resetText !== 'RESET') {
-        showMessage('Reset cancelled. Leaderboard data is safe.', 'error');
         return;
     }
     
