@@ -94,6 +94,8 @@ async function loadLeaderboard() {
 
 // Reset all leaderboard data
 async function resetLeaderboard() {
+    console.log('Reset button clicked!');
+    
     // Show confirmation dialog
     const confirmed = confirm('⚠️ WARNING: This will permanently delete ALL leaderboard data!\n\nAre you absolutely sure you want to reset the leaderboard?\n\nThis action cannot be undone.');
     
@@ -122,13 +124,28 @@ async function resetLeaderboard() {
     showMessage('Resetting leaderboard...', 'error');
     
     try {
-        // Delete all entries from the leaderboard
-        const { error } = await supabase
+        // First, get all entries to delete them individually
+        const { data: allEntries, error: fetchError } = await supabase
             .from('Manual Leaderboard')
-            .delete()
-            .neq('id', 0); // This will delete all rows since no ID is 0
+            .select('id');
         
-        if (error) throw error;
+        if (fetchError) throw fetchError;
+        
+        if (!allEntries || allEntries.length === 0) {
+            showMessage('✅ Leaderboard is already empty!', 'success');
+            await loadLeaderboard();
+            return;
+        }
+        
+        // Delete each entry individually
+        for (const entry of allEntries) {
+            const { error: deleteError } = await supabase
+                .from('Manual Leaderboard')
+                .delete()
+                .eq('id', entry.id);
+            
+            if (deleteError) throw deleteError;
+        }
         
         showMessage('✅ Leaderboard has been reset successfully!', 'success');
         
@@ -160,7 +177,14 @@ function escapeHtml(text) {
 // Event listeners
 scoreForm.addEventListener('submit', submitScore);
 refreshBtn.addEventListener('click', loadLeaderboard);
-resetBtn.addEventListener('click', resetLeaderboard);
+
+// Check if reset button exists and add event listener
+if (resetBtn) {
+    resetBtn.addEventListener('click', resetLeaderboard);
+    console.log('Reset button found and event listener added');
+} else {
+    console.error('Reset button not found! Check HTML structure.');
+}
 
 // Load leaderboard on page load
 loadLeaderboard();
