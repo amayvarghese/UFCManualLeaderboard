@@ -1,0 +1,25 @@
+{
+  "name": "ufc-manual-leaderboard",
+  "version": "1.0.0",
+  "description": "UFC Manual Leaderboard with Supabase integration, mobile-responsive design, and Unity support",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000"
+  },
+  "keywords": [
+    "ufc",
+    "leaderboard",
+    "supabase",
+    "unity",
+    "mobile",
+    "responsive"
+  ],
+  "author": "Amay Varghese",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amayvarghese/UFCManualLeaderboard.git"
+  },
+  "homepage": "https://ufc-manual-leaderboard.vercel.app"
+}
