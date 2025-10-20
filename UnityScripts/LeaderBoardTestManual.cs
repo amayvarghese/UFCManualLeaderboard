@@ -112,6 +112,7 @@ public class LeaderBoardTestManual : MonoBehaviour
         
         // Build the REST API URL
         string url = $"{supabaseUrl}/rest/v1/Manual%20Leaderboard?select=*&order=score.desc,created_at.asc";
+        Debug.Log($"LeaderBoardTestManual.LoadLeaderboardData() - URL: {url}");
         
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
@@ -131,12 +132,28 @@ public class LeaderBoardTestManual : MonoBehaviour
                 {
                     // Parse the JSON response
                     string jsonData = request.downloadHandler.text;
-                    LeaderboardEntryWrapper wrapper = JsonUtility.FromJson<LeaderboardEntryWrapper>("{\"data\":" + jsonData + "}");
+                    Debug.Log($"LeaderBoardTestManual.LoadLeaderboardData() - Raw JSON: {jsonData}");
                     
-                    if (wrapper != null && wrapper.data != null)
+                    // Try direct parsing first (in case the response is already an array)
+                    LeaderboardEntry[] directEntries = JsonUtility.FromJson<LeaderboardEntry[]>(jsonData);
+                    if (directEntries != null && directEntries.Length > 0)
                     {
-                        currentLeaderboardData = wrapper.data.ToList();
-                        Debug.Log($"LeaderBoardTestManual.LoadLeaderboardData() - Loaded {currentLeaderboardData.Count} entries");
+                        currentLeaderboardData = directEntries.ToList();
+                        Debug.Log($"LeaderBoardTestManual.LoadLeaderboardData() - Direct parsing loaded {currentLeaderboardData.Count} entries");
+                    }
+                    else
+                    {
+                        // Try wrapper parsing
+                        LeaderboardEntryWrapper wrapper = JsonUtility.FromJson<LeaderboardEntryWrapper>("{\"data\":" + jsonData + "}");
+                        if (wrapper != null && wrapper.data != null)
+                        {
+                            currentLeaderboardData = wrapper.data.ToList();
+                            Debug.Log($"LeaderBoardTestManual.LoadLeaderboardData() - Wrapper parsing loaded {currentLeaderboardData.Count} entries");
+                        }
+                    }
+                    
+                    if (currentLeaderboardData != null && currentLeaderboardData.Count > 0)
+                    {
                         
                         // Check if we have new entries (for highlighting)
                         if (currentLeaderboardData.Count > lastDataCount && lastDataCount > 0)
@@ -510,10 +527,22 @@ public class LeaderBoardTestManual : MonoBehaviour
     // Public method to manually refresh leaderboard (can be called from UI button)
     public void RefreshLeaderboard()
     {
+        Debug.Log("LeaderBoardTestManual.RefreshLeaderboard() - Manual refresh requested");
         if (isInitialized)
         {
             StartCoroutine(LoadLeaderboardData());
         }
+        else
+        {
+            Debug.LogWarning("LeaderBoardTestManual.RefreshLeaderboard() - Not initialized yet");
+        }
+    }
+    
+    // Force refresh without initialization check
+    public void ForceRefresh()
+    {
+        Debug.Log("LeaderBoardTestManual.ForceRefresh() - Force refresh requested");
+        StartCoroutine(LoadLeaderboardData());
     }
 
     // Public method to add a new score (can be called from game logic)
