@@ -1,0 +1,17 @@
+# Configuration with sensitive data
+config.js
+
+# Backup of config template
+config.example.js
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+
+# Logs
+*.log
+

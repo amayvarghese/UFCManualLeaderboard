@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UFC Manual Leaderboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🥊 UFC Leaderboard</h1>
+            <p class="subtitle">Track your scores and compete!</p>
+            
+            <form id="scoreForm">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        placeholder="Enter your name" 
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="score">Score</label>
+                    <input 
+                        type="number" 
+                        id="score" 
+                        name="score" 
+                        placeholder="Enter your score" 
+                        min="0"
+                        required
+                    >
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    Submit Score
+                </button>
+            </form>
+            
+            <div id="message" class="message"></div>
+        </div>
+
+        <div class="card leaderboard-card">
+            <h2>🏆 Current Leaderboard</h2>
+            <div id="leaderboard" class="leaderboard">
+                <p class="loading">Loading leaderboard...</p>
+            </div>
+            <button id="refreshBtn" class="refresh-btn">Refresh Leaderboard</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
